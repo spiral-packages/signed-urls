@@ -1,40 +1,42 @@
 {
-  "name": ":vendor_slug/:package_slug",
-  "description": ":package_description",
+  "name": "spiral/signed-urls",
+  "description": "Create and validate signed URLs in Spiral Framework",
   "keywords": [
-    ":vendor_name",
     "spiral",
-    ":package_slug"
+    "spiral-framework",
+    "signed-urls",
+    "php",
+    "php81",
+    "url-generator"
   ],
-  "homepage": "https://github.com/:vendor_slug/:package_slug",
+  "homepage": "https://github.com/spiral/signed-urls",
   "license": "MIT",
   "authors": [
     {
-      "name": ":author_name",
-      "email": "author@domain.com",
+      "name": "Pavel Buchnev",
+      "email": "butschster@gmail.com",
       "role": "Developer"
     }
   ],
   "require": {
     "php": "^8.1",
     "spiral/boot": "^3.0",
-    "spiral/console": "^3.0"
+    "spiral/router": "^3.0"
   },
   "require-dev": {
-    "mockery/mockery": "^1.5",
-    "phpunit/phpunit": "^9.5",
+    "spiral/framework": "^3.0",
     "spiral/testing": "^2.0",
     "vimeo/psalm": "^4.9"
   },
   "autoload": {
     "psr-4": {
-      "VendorName\\Skeleton\\": "src"
+      "Spiral\\SignedUrls\\": "src"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "VendorName\\Skeleton\\Tests\\App\\": "tests/app",
-      "VendorName\\Skeleton\\Tests\\": "tests/src"
+      "Spiral\\SignedUrls\\Tests\\App\\": "tests/app",
+      "Spiral\\SignedUrls\\Tests\\": "tests/src"
     }
   },
   "scripts": {
@@ -42,12 +44,15 @@
     "psalm": "vendor/bin/psalm --config=psalm.xml ./src"
   },
   "config": {
-    "sort-packages": true
+    "sort-packages": true,
+    "allow-plugins": {
+      "spiral/composer-publish-plugin": true
+    }
   },
   "extra": {
     "spiral": {
       "bootloaders": [
-        "VendorName\\Skeleton\\Bootloader\\SkeletonBootloader"
+        "Spiral\\SignedUrls\\Bootloader\\SignedUrlsBootloader"
       ]
     }
   },
