@@ -1,4 +1,4 @@
-# This is my package signed-urls
+# Signed URL generator for Spiral Framework based on Laravel
 
 [![PHP](https://img.shields.io/packagist/php-v/spiral/signed-urls.svg?style=flat-square)](https://packagist.org/packages/spiral/signed-urls)
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/spiral/signed-urls.svg?style=flat-square)](https://packagist.org/packages/spiral/signed-urls)

@@ -1,5 +1,5 @@
 {
-  "name": "spiral/signed-urls",
+  "name": "spiral-packages/signed-urls",
   "description": "Create and validate signed URLs in Spiral Framework",
   "keywords": [
     "spiral",
@@ -9,7 +9,7 @@
     "php81",
     "url-generator"
   ],
-  "homepage": "https://github.com/spiral/signed-urls",
+  "homepage": "https://github.com/spiral-packages/signed-urls",
   "license": "MIT",
   "authors": [
     {
@@ -21,7 +21,8 @@
   "require": {
     "php": "^8.1",
     "spiral/boot": "^3.0",
-    "spiral/router": "^3.0"
+    "spiral/router": "^3.0",
+    "spiral/encrypter": "^3.0"
   },
   "require-dev": {
     "spiral/framework": "^3.0",
