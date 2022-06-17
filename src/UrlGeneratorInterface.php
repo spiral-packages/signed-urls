@@ -16,23 +16,17 @@ interface UrlGeneratorInterface
      */
     public function signedRoute(
         string $route,
-        iterable $parameters = [],
+        array $parameters = [],
         \DateTimeInterface|\DateInterval|null $expiration = null
     ): UriInterface;
 
     /**
-     * Create a temporary signed route URL for a named route.
-     *
-     * @throws ReservedParameterException
+     * Create a signed URL for a given Uri.
      */
-    public function temporarySignedRoute(
-        string $route,
-        \DateTimeInterface|\DateInterval $expiration,
-        iterable $parameters = [],
-    ): UriInterface;
+    public function signedUrl(UriInterface $uri): UriInterface;
 
     /**
-     * Determine if the given request has a valid signature.
+     * Determine if the given request has a valid signature and not expired.
      */
     public function hasValidSignature(UriInterface $uri): bool;
 

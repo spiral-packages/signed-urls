@@ -5,28 +5,52 @@ declare(strict_types=1);
 namespace Spiral\SignedUrls\Bootloader;
 
 use Spiral\Boot\Bootloader\Bootloader;
+use Spiral\Boot\EnvironmentInterface;
 use Spiral\Bootloader\Http\RouterBootloader;
-use Spiral\Bootloader\Security\EncrypterBootloader;
-use Spiral\Encrypter\Config\EncrypterConfig;
+use Spiral\Config\ConfiguratorInterface;
+use Spiral\Core\ConfigsInterface;
 use Spiral\Router\RouterInterface;
+use Spiral\SignedUrls\Config\SignedUrlsConfig;
+use Spiral\SignedUrls\HmacSignature;
+use Spiral\SignedUrls\SignatureInterface;
 use Spiral\SignedUrls\UrlGenerator;
 use Spiral\SignedUrls\UrlGeneratorInterface;
 
 class SignedUrlsBootloader extends Bootloader
 {
     protected const DEPENDENCIES = [
-        EncrypterBootloader::class,
         RouterBootloader::class,
     ];
 
     protected const SINGLETONS = [
-        UrlGeneratorInterface::class => [self::class, ['initUrlGenerator']],
+        UrlGeneratorInterface::class => [self::class, 'initUrlGenerator'],
+        SignatureInterface::class => [self::class, 'initSignature'],
     ];
+
+    public function __construct(
+        private readonly ConfiguratorInterface $config
+    ) {
+    }
+
+    public function init(EnvironmentInterface $env): void
+    {
+        $this->config->setDefaults(SignedUrlsConfig::CONFIG, [
+            'key' => $env->get('SIGNED_URLS_KEY'),
+            'algo' => $env->get('SIGNED_URLS_ALGO', 'sha256'),
+        ]);
+    }
+
+    private function initSignature(SignedUrlsConfig $config): SignatureInterface
+    {
+        return new HmacSignature(
+            $config->getKey(), $config->getAlgo()
+        );
+    }
 
     private function initUrlGenerator(
         RouterInterface $router,
-        EncrypterConfig $config
+        SignatureInterface $signature
     ): UrlGeneratorInterface {
-        return new UrlGenerator($router, $config->getKey());
+        return new UrlGenerator($router, $signature);
     }
 }

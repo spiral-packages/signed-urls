@@ -12,37 +12,38 @@ final class UrlGenerator implements UrlGeneratorInterface
 {
     public function __construct(
         private readonly RouterInterface $router,
-        private readonly string $key
+        private readonly SignatureInterface $signature
     ) {
     }
 
     public function signedRoute(
         string $route,
-        iterable $parameters = [],
+        array $parameters = [],
         \DateTimeInterface|\DateInterval|null $expiration = null
     ): UriInterface {
-        $this->ensureSignedRouteParametersAreNotReserved($parameters);
-
-        if ($expiration !== null) {
-            $parameters = $parameters + ['expires' => $this->toTimestamp($expiration)];
-        }
-
-        ksort($parameters);
+        $parameters = $this->prepareParameters($parameters, $expiration);
 
         return $this->router->uri(
             $route,
-            $parameters + [
-                'signature' => hash_hmac('sha256', (string)$this->router->uri($route, $parameters), $this->key),
-            ]
+            \array_merge($parameters, [
+                'signature' => $this->signature->generate((string)$this->router->uri($route, $parameters)),
+            ])
         );
     }
 
-    public function temporarySignedRoute(
-        string $route,
-        \DateTimeInterface|\DateInterval $expiration,
-        iterable $parameters = [],
+    public function signedUrl(
+        UriInterface $uri,
+        \DateTimeInterface|\DateInterval|null $expiration = null
     ): UriInterface {
-        return $this->signedRoute($route, $parameters, $expiration);
+        \parse_str($uri->getQuery(), $parameters);
+
+        $parameters = $this->prepareParameters($parameters, $expiration);
+
+        return $uri->withQuery(\http_build_query(
+            \array_merge($parameters, [
+                'signature' => $this->signature->generate((string)$uri),
+            ])
+        ));
     }
 
     public function hasValidSignature(UriInterface $uri): bool
@@ -56,18 +57,23 @@ final class UrlGenerator implements UrlGeneratorInterface
 
         $url = ltrim(preg_replace('/(^|&)signature=[^&]+/', '', $url), '&');
 
-        $signature = hash_hmac('sha256', rtrim($url, '?'), $this->key);
-
-        return hash_equals($signature, $this->getSignatureFromQueryString($uri));
+        return $this->signature->compare(
+            $this->getSignatureFromQueryString($uri),
+            rtrim($url, '?')
+        );
     }
 
     public function signatureHasNotExpired(UriInterface $uri): bool
     {
         \parse_str($uri->getQuery(), $output);
 
-        $expires = $output['expires'] ?? null;
+        $expires = (int)($output['expires'] ?? null);
 
-        return ! ($expires && (new \DateTime)->getTimestamp() > $expires);
+        if ($expires === 0) {
+            return true;
+        }
+
+        return (new \DateTime)->getTimestamp() <= $expires;
     }
 
     private function getSignatureFromQueryString(UriInterface $uri): string
@@ -107,5 +113,20 @@ final class UrlGenerator implements UrlGeneratorInterface
                 '"Expires" is a reserved parameter when generating signed routes. Please rename your parameter.'
             );
         }
+    }
+
+    private function prepareParameters(
+        array $parameters,
+        \DateInterval|\DateTimeInterface|null $expiration
+    ): array {
+        $this->ensureSignedRouteParametersAreNotReserved($parameters);
+
+        if ($expiration !== null) {
+            $parameters = \array_merge($parameters, ['expires' => $this->toTimestamp($expiration)]);
+        }
+
+        \ksort($parameters);
+
+        return $parameters;
     }
 }
