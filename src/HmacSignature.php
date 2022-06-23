@@ -19,11 +19,11 @@ final class HmacSignature implements SignatureInterface
 
     public function generate(string $string): string
     {
-        return hash_hmac($this->algo, $string, $this->key);
+        return \hash_hmac($this->algo, $string, $this->key);
     }
 
     public function compare(string $hash, string $string): bool
     {
-        return hash_equals($hash, $this->generate($string));
+        return \hash_equals($hash, $this->generate($string));
     }
 }

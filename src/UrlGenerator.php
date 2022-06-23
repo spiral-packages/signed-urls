@@ -21,13 +21,9 @@ final class UrlGenerator implements UrlGeneratorInterface
         array $parameters = [],
         \DateTimeInterface|\DateInterval|null $expiration = null
     ): UriInterface {
-        $parameters = $this->prepareParameters($parameters, $expiration);
-
-        return $this->router->uri(
-            $route,
-            \array_merge($parameters, [
-                'signature' => $this->signature->generate((string)$this->router->uri($route, $parameters)),
-            ])
+        return $this->signedUrl(
+            $this->router->uri($route, $parameters),
+            $expiration
         );
     }
 
@@ -41,7 +37,7 @@ final class UrlGenerator implements UrlGeneratorInterface
 
         return $uri->withQuery(\http_build_query(
             \array_merge($parameters, [
-                'signature' => $this->signature->generate((string)$uri),
+                'signature' => $this->signature->generate($this->prepareUri($uri)),
             ])
         ));
     }
@@ -53,13 +49,13 @@ final class UrlGenerator implements UrlGeneratorInterface
 
     public function hasCorrectSignature(UriInterface $uri): bool
     {
-        $url = (string)$uri;
+        $url = $this->prepareUri($uri);
 
-        $url = ltrim(preg_replace('/(^|&)signature=[^&]+/', '', $url), '&');
+        $url = \ltrim(\preg_replace('/(^|&|\?)signature=[^&]+/', '', $url), '&');
 
         return $this->signature->compare(
             $this->getSignatureFromQueryString($uri),
-            rtrim($url, '?')
+            \rtrim($url, '?')
         );
     }
 
@@ -102,13 +98,13 @@ final class UrlGenerator implements UrlGeneratorInterface
      */
     private function ensureSignedRouteParametersAreNotReserved(array $parameters): void
     {
-        if (array_key_exists('signature', $parameters)) {
+        if (\array_key_exists('signature', $parameters)) {
             throw new ReservedParameterException(
                 '"Signature" is a reserved parameter when generating signed routes. Please rename your parameter.'
             );
         }
 
-        if (array_key_exists('expires', $parameters)) {
+        if (\array_key_exists('expires', $parameters)) {
             throw new ReservedParameterException(
                 '"Expires" is a reserved parameter when generating signed routes. Please rename your parameter.'
             );
@@ -128,5 +124,10 @@ final class UrlGenerator implements UrlGeneratorInterface
         \ksort($parameters);
 
         return $parameters;
+    }
+
+    private function prepareUri(UriInterface $uri): string
+    {
+        return (string)$uri->withScheme('')->withHost('');
     }
 }

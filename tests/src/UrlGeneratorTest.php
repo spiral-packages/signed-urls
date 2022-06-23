@@ -27,7 +27,7 @@ final class UrlGeneratorTest extends TestCase
 
     public function testSignUrlWithoutExpiration(): void
     {
-        $this->signature->shouldReceive('generate')->once()->with('http://site.com/category/1?bar=baz')
+        $this->signature->shouldReceive('generate')->once()->with('/category/1?bar=baz')
             ->andReturn('hashed_string');
 
         $uri = $this->generator->signedUrl(new Uri('http://site.com/category/1?bar=baz'));
@@ -42,7 +42,7 @@ final class UrlGeneratorTest extends TestCase
     {
         $expiration = new \DateTime('2011-01-01T15:03:01.012345Z');
 
-        $this->signature->shouldReceive('generate')->once()->with('http://site.com/category/1?bar=baz')
+        $this->signature->shouldReceive('generate')->once()->with('/category/1?bar=baz')
             ->andReturn('hashed_string');
 
         $uri = $this->generator->signedUrl(new Uri('http://site.com/category/1?bar=baz'), $expiration);
@@ -53,17 +53,13 @@ final class UrlGeneratorTest extends TestCase
         );
     }
 
-    public function testSignRouteWithoutExpiration(): void
+    public function testSignRouteWithoutExpirationWithQueryString(): void
     {
         $this->router->shouldReceive('uri')->once()->with('foo', ['bar' => 'baz', 'zoo' => 'zaz'])
             ->andReturn(new Uri('http://site.com/category/1?bar=baz'));
 
-        $this->signature->shouldReceive('generate')->once()->with('http://site.com/category/1?bar=baz')
+        $this->signature->shouldReceive('generate')->once()->with('/category/1?bar=baz')
             ->andReturn('hashed_string');
-
-        $this->router->shouldReceive('uri')->once()
-            ->with('foo', ['bar' => 'baz', 'zoo' => 'zaz', 'signature' => 'hashed_string'])
-            ->andReturn(new Uri('http://site.com/category/1?bar=baz&signature=hashed_string'));
 
         $uri = $this->generator->signedRoute('foo', ['zoo' => 'zaz', 'bar' => 'baz']);
 
@@ -78,29 +74,25 @@ final class UrlGeneratorTest extends TestCase
         $expiration = new \DateTime('2011-01-01T15:03:01.012345Z');
 
         $this->router->shouldReceive('uri')->once()
-            ->with('foo', ['bar' => 'baz', 'zoo' => 'zaz', 'expires' => 1293894181])
+            ->with('foo', ['bar' => 'baz', 'zoo' => 'zaz'])
             ->andReturn(new Uri('http://site.com/category/1?bar=baz'));
 
-        $this->signature->shouldReceive('generate')->once()->with('http://site.com/category/1?bar=baz')
+        $this->signature->shouldReceive('generate')->once()->with('/category/1?bar=baz')
             ->andReturn('hashed_string');
-
-        $this->router->shouldReceive('uri')->once()
-            ->with('foo', ['bar' => 'baz', 'expires' => 1293894181, 'zoo' => 'zaz', 'signature' => 'hashed_string'])
-            ->andReturn(new Uri('http://site.com/category/1?bar=ba&expires=1293894181&signature=hashed_string'));
 
         $uri = $this->generator->signedRoute('foo', ['zoo' => 'zaz', 'bar' => 'baz'], $expiration);
 
         $this->assertSame(
-            'http://site.com/category/1?bar=ba&expires=1293894181&signature=hashed_string',
+            'http://site.com/category/1?bar=baz&expires=1293894181&signature=hashed_string',
             (string)$uri
         );
     }
 
-    public function testValidateSignatureWithSignatureAndExpiredTimespamp(): void
+    public function testValidateSignatureWithSignatureAndExpiredTimestamp(): void
     {
         $this->signature->shouldReceive('compare')
             ->once()
-            ->with('hashed_string', 'http://site.com/category/1?bar=baz&expires=1293894181&page=1')
+            ->with('hashed_string', '/category/1?bar=baz&expires=1293894181&page=1')
             ->andReturnTrue();
 
         $this->assertFalse(
@@ -118,7 +110,7 @@ final class UrlGeneratorTest extends TestCase
 
         $this->signature->shouldReceive('compare')
             ->once()
-            ->with('hashed_string', 'http://site.com/category/1?bar=baz&expires='.$timestamp.'&page=1')
+            ->with('hashed_string', '/category/1?bar=baz&expires='.$timestamp.'&page=1')
             ->andReturnTrue();
 
         $this->assertTrue(
@@ -136,7 +128,7 @@ final class UrlGeneratorTest extends TestCase
 
         $this->signature->shouldReceive('compare')
             ->once()
-            ->with('hashed_string', 'http://site.com/category/1?bar=baz&expires='.$timestamp.'&page=1')
+            ->with('hashed_string', '/category/1?bar=baz&expires='.$timestamp.'&page=1')
             ->andReturnFalse();
 
         $this->assertFalse(
@@ -148,11 +140,27 @@ final class UrlGeneratorTest extends TestCase
         );
     }
 
+    public function testValidateSignatureWithoutQueryString(): void
+    {
+        $this->signature->shouldReceive('compare')
+            ->once()
+            ->with('hashed_string', '/category/1')
+            ->andReturnFalse();
+
+        $this->assertFalse(
+            $this->generator->hasValidSignature(
+                new Uri(
+                    'http://site.com/category/1?signature=hashed_string'
+                )
+            )
+        );
+    }
+
     public function testValidateSignatureWithoutSignature(): void
     {
         $this->signature->shouldReceive('compare')
             ->once()
-            ->with('', 'http://site.com/category/1?bar=baz&expires=1293894181&page=1')
+            ->with('', '/category/1?bar=baz&expires=1293894181&page=1')
             ->andReturnFalse();
 
         $this->assertFalse(
