@@ -42,7 +42,8 @@ final class UrlGeneratorTest extends TestCase
     {
         $expiration = new \DateTime('2011-01-01T15:03:01.012345Z');
 
-        $this->signature->shouldReceive('generate')->once()->with('/category/1?bar=baz')
+        $this->signature->shouldReceive('generate')->once()
+            ->with('/category/1?bar=baz&expires='.$expiration->getTimestamp())
             ->andReturn('hashed_string');
 
         $uri = $this->generator->signedUrl(new Uri('http://site.com/category/1?bar=baz'), $expiration);
@@ -77,7 +78,9 @@ final class UrlGeneratorTest extends TestCase
             ->with('foo', ['bar' => 'baz', 'zoo' => 'zaz'])
             ->andReturn(new Uri('http://site.com/category/1?bar=baz'));
 
-        $this->signature->shouldReceive('generate')->once()->with('/category/1?bar=baz')
+        $this->signature->shouldReceive('generate')
+            ->once()
+            ->with('/category/1?bar=baz&expires='.$expiration->getTimestamp())
             ->andReturn('hashed_string');
 
         $uri = $this->generator->signedRoute('foo', ['zoo' => 'zaz', 'bar' => 'baz'], $expiration);

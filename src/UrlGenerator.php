@@ -37,7 +37,7 @@ final class UrlGenerator implements UrlGeneratorInterface
 
         return $uri->withQuery(\http_build_query(
             \array_merge($parameters, [
-                'signature' => $this->signature->generate($this->prepareUri($uri)),
+                'signature' => $this->signature->generate($this->prepareUri($uri->withQuery(\http_build_query($parameters))))
             ])
         ));
     }
