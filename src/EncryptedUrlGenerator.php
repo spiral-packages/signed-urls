@@ -41,7 +41,7 @@ final class EncryptedUrlGenerator extends UrlGenerator implements EncryptedUrlGe
     public function hasCorrectSignature(UriInterface $uri): bool
     {
         try {
-            return parent::hasValidSignature($this->getDecryptedUri($uri));
+            return parent::hasCorrectSignature($this->getDecryptedUri($uri));
         } catch (InvalidSignatureException $e) {
             return false;
         }
