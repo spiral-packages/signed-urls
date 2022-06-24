@@ -8,7 +8,7 @@ use Psr\Http\Message\UriInterface;
 use Spiral\Router\RouterInterface;
 use Spiral\SignedUrls\Exception\ReservedParameterException;
 
-final class UrlGenerator implements UrlGeneratorInterface
+class UrlGenerator implements UrlGeneratorInterface
 {
     public function __construct(
         private readonly RouterInterface $router,
@@ -19,7 +19,7 @@ final class UrlGenerator implements UrlGeneratorInterface
     public function signedRoute(
         string $route,
         array $parameters = [],
-        \DateTimeInterface|\DateInterval|null $expiration = null
+        \DateTimeInterface|\DateInterval|null $expiration = null,
     ): UriInterface {
         return $this->signedUrl(
             $this->router->uri($route, $parameters),

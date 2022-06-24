@@ -8,9 +8,11 @@ use Spiral\Boot\Bootloader\Bootloader;
 use Spiral\Boot\EnvironmentInterface;
 use Spiral\Bootloader\Http\RouterBootloader;
 use Spiral\Config\ConfiguratorInterface;
-use Spiral\Core\ConfigsInterface;
+use Spiral\Encrypter\EncrypterInterface;
 use Spiral\Router\RouterInterface;
 use Spiral\SignedUrls\Config\SignedUrlsConfig;
+use Spiral\SignedUrls\EncryptedUrlGenerator;
+use Spiral\SignedUrls\EncryptedUrlGeneratorInterface;
 use Spiral\SignedUrls\HmacSignature;
 use Spiral\SignedUrls\SignatureInterface;
 use Spiral\SignedUrls\UrlGenerator;
@@ -24,6 +26,7 @@ class SignedUrlsBootloader extends Bootloader
 
     protected const SINGLETONS = [
         UrlGeneratorInterface::class => [self::class, 'initUrlGenerator'],
+        EncryptedUrlGeneratorInterface::class => [self::class, 'initEncryptedUrlGenerator'],
         SignatureInterface::class => [self::class, 'initSignature'],
     ];
 
@@ -52,5 +55,13 @@ class SignedUrlsBootloader extends Bootloader
         SignatureInterface $signature
     ): UrlGeneratorInterface {
         return new UrlGenerator($router, $signature);
+    }
+
+    private function initEncryptedUrlGenerator(
+        RouterInterface $router,
+        SignatureInterface $signature,
+        EncrypterInterface $encrypter
+    ): UrlGeneratorInterface {
+        return new EncryptedUrlGenerator($router, $signature, $encrypter);
     }
 }
