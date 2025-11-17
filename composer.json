@@ -23,7 +23,7 @@
     "spiral/boot": "^3.0",
     "spiral/router": "^3.0",
     "spiral/http": "^3.0",
-    "psr/http-message": "^1.0"
+    "psr/http-message": "^1.0||^2.0"
   },
   "require-dev": {
     "spiral/framework": "^3.0",
